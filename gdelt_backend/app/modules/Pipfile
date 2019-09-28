@@ -4,14 +4,9 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-psycopg2-binary = "*"
 
 [packages]
-django = "*"
-celery = "*"
-redis = "*"
-django-widget-tweaks = "*"
-requests = "*"
+pylint = "*"
 
 [requires]
 python_version = "3.7"

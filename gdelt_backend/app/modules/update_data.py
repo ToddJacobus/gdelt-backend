@@ -1,5 +1,6 @@
 import datetime
 import requests
+import re
 
 ## ----------------------------------------------------------
 ## Objectives:
@@ -20,22 +21,31 @@ def generate_csv_list(dates):
     chunk_size = 8096
     # send request to GDELT and search for date matches
     with requests.get(base_url, stream=True) as response:
-        if response.status_code = 200:
+        if response.status_code == 200:
             for chunk in response.iter_lines(chunk_size):
-                for date in dates: # this loop could be optimized/avoided?
-                    regex = r"http://.*{y}{m}{d}\d{6}.*\.gkg\.csv\.zip".format(
-                        y = date.year,
-                        m = date.month,
-                        d = date.day
-                    )
-                    matches = re.findall(regex, chunk, re.IGNORECASE)
-                    if len(matches) = 1:
-                        csv_results[date] = matches[0]
-                    elif len(matches) > 1:
-                        # this means our regex is bad... i.e., too matchy
-                        raise
+                try:
+                    for date in dates: # this loop could be optimized/avoided?
+                        regex = r"http://.*" + "{y}{m}{d}".format(
+                            y = date.year,
+                            m = date.month,
+                            d = date.day
+                        ) + r"\d{6}.*\.gkg\.csv\.zip"
+                        matches = re.findall(regex, chunk, re.IGNORECASE)
+                        if len(matches) == 1:
+                            csv_results[date] = matches[0]
+                        elif len(matches) > 1:
+                            # this means our regex is bad... i.e., too matchy
+                            print("WARNING: Check your regex... it's too matchy.")
+                except:
+                    import pdb; pdb.set_trace()
                     
         else:
             # could not connect to server for whatever reason...
-            raise
-    return csv_results
+            print("Could not connect. Server returned a {}".format(response.status_code))
+    return csv_results 
+
+if __name__ == "__main__":
+    d1 = datetime.date(2018, 1, 1)
+    d2 = datetime.date(2018, 2, 1)
+    date_list = [d for d in generate_date_list(d1, d2)]
+    csv_list = generate_csv_list(date_list)
