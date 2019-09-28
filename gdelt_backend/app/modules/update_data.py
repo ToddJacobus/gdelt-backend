@@ -23,20 +23,17 @@ def generate_csv_list(dates):
     with requests.get(base_url, stream=True) as response:
         if response.status_code == 200:
             for chunk in response.iter_lines(chunk_size):
-                try:
-                    for date in dates: # this loop could be optimized/avoided?
-                        regex = r"http://.*" + "{y}{m}{d}".format(
-                            y = date.year,
-                            m = date.month,
-                            d = date.day
-                        ) + r"\d{6}.*\.gkg\.csv\.zip"
-                        matches = re.findall(regex, chunk, re.IGNORECASE)
-                        if len(matches) == 1:
-                            csv_results[date] = matches[0]
-                        elif len(matches) > 1:
-                            # this means our regex is bad... i.e., too matchy
-                            print("WARNING: Check your regex... it's too matchy.")
-                except:
+                for date in dates: # this loop could be optimized/avoided?
+                    # DEBUG: this regex is broken...
+                    #        Consider simplifying.. e.g., just split the line on whitespace and
+                    #        match the date on the last item.  If matched, grab the url.
+                    regex = r"http://.*" + date.strftime("%Y%m%d") + r"\d{6}.*\.gkg\.csv\.zip"
+                    matches = re.findall(regex, str(chunk), re.IGNORECASE)
+                    if len(matches) == 1:
+                        csv_results[date] = matches[0]
+                    elif len(matches) > 1:
+                        # this means our regex is bad... i.e., too matchy
+                        print("WARNING: Check your regex... it's too matchy.")
                     import pdb; pdb.set_trace()
                     
         else:
