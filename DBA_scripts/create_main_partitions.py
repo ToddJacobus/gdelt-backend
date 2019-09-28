@@ -15,6 +15,7 @@ def create_date_ranges():
 
 def write_sql_for(dates):
     sql = []
+    sql_indexes = []
     table_list = [
         'gkg_sources',
         'gkg_counts',
@@ -45,9 +46,19 @@ def write_sql_for(dates):
                     date_string = date_string,
                     next_date = next_date
                 ))
-    single_string = " ".join(sql)
-    import pdb; pdb.set_trace()
-    return sql, single_string
+
+                sql_indexes.append(
+                    """
+                    CREATE INDEX IF NOT EXISTS {table}{year}_{month}_pub_date_idx ON data.{table}_yr{year}m{month} USING btree (pub_date);  
+                    """.format(
+                        table = table,
+                        year = year,
+                        month = month,
+                    )
+                )
+    sql_single = " ".join(sql)
+    index_sql_single = " ".join(sql_indexes)
+    return sql, sql_single, index_sql_single
 
 def create_the_tables_for(Session, sql_list, single_transaction=False):
     count = 1
@@ -83,11 +94,15 @@ def getDbParams(params_path):
     return params
 
 ## -- GLOBALS ------------------------------------------------------------------
-db_credentials_path = r"gkg_master_credentials.json" # Scombrini local
+db_credentials_path = r"../../gkg_master_credentials.json" # Scombrini local
 params = getDbParams(db_credentials_path)
 engine = create_engine('postgresql://{}:{}@{}:{}/{}'.format(params['username'],params['password'],params['host'],params['port'],params['database_name']))
 Session = sessionmaker(bind=engine)
 
-sql_list, single_transaction = write_sql_for(create_date_ranges())
-
-create_the_tables_for(Session, sql_list)
+# Write out SQL for creating tables.
+# I think it's easier to just save this as a .sql file
+# and run it in psql or PGAdmin.
+sql_list, create_tables, create_indexes = write_sql_for(create_date_ranges())
+import pdb; pdb.set_trace()
+with open('create_indexes.sql', 'w+') as file:
+    file.write(create_indexes)
