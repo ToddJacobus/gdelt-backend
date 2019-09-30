@@ -22,23 +22,16 @@ def generate_csv_list(dates):
     # send request to GDELT and search for date matches
     with requests.get(base_url, stream=True) as response:
         if response.status_code == 200:
-            for chunk in response.iter_lines(chunk_size):
-                for date in dates: # this loop could be optimized/avoided?
-                    # DEBUG: this regex is broken...
-                    #        Consider simplifying.. e.g., just split the line on whitespace and
-                    #        match the date on the last item.  If matched, grab the url.
-                    regex = r"http://.*" + date.strftime("%Y%m%d") + r"\d{6}.*\.gkg\.csv\.zip"
-                    matches = re.findall(regex, str(chunk), re.IGNORECASE)
-                    if len(matches) == 1:
-                        csv_results[date] = matches[0]
-                    elif len(matches) > 1:
-                        # this means our regex is bad... i.e., too matchy
-                        print("WARNING: Check your regex... it's too matchy.")
-                    import pdb; pdb.set_trace()
-                    
+            for line in response.iter_lines(chunk_size):
+                url = str(line).split()[-1].strip("\'")
+                for date in dates:
+                    date_string = date.strftime("%Y%m%d")
+                    if re.search(date_string, url):
+                        csv_results[date] = url
         else:
             # could not connect to server for whatever reason...
             print("Could not connect. Server returned a {}".format(response.status_code))
+    import pdb; pdb.set_trace()
     return csv_results 
 
 if __name__ == "__main__":
