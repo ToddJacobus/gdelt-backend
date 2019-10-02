@@ -1,3 +1,5 @@
 {
-    "python.pythonPath": "/Users/toddjacobus/.local/share/virtualenvs/gdelt_backend-3mRuTprG/bin/python"
+    "python.pythonPath": "/Users/toddjacobus/.local/share/virtualenvs/gdelt_backend-3mRuTprG/bin/python",
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
 }

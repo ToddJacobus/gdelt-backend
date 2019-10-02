@@ -1,0 +1,4 @@
+49305 18f9b16f0bc6b1e203b963264b7c90f1 http://data.gdeltproject.org/gdeltv2/20150218224500.translation.export.CSV.zip
+133082 d019304ace29aec800f688b616fceb06 http://data.gdeltproject.org/gdeltv2/20150218224500.translation.mentions.CSV.zip
+9117874 fb4bb6d180eb8cde5825a8e6dbab1865 http://data.gdeltproject.org/gdeltv2/20150218224500.translation.gkg.csv.zip
+59173 b634baabd40fbe078f723829e7e4639f http://data.gdeltproject.org/gdeltv2/20150218230000.translation.export.CSV.zip
