@@ -1,10 +1,10 @@
 {
         "gkg_sources":{
-            "gkg_id": 0,
-            "pub_date": 1,
-            "source_id": 2,
-            "source_name": 3,
-            "doc_uri": 4,
+            "gkg_id": [0],
+            "pub_date": [1],
+            "source_id": [2],
+            "source_name": [3],
+            "doc_uri": [4],
             "positive_score":[15, 1],
             "negative_score":[15, 2],
             "polarity":[15, 3],
@@ -13,7 +13,7 @@
             "word_count":[15, 6]
         },
         "gkg_counts":{
-            "pub_date":1,
+            "pub_date":[1],
             "count_type":[6, 0],
             "count_n":[6, 1],
             "object_type":[6, 2],
@@ -25,12 +25,12 @@
             "location_lon":[6, 8]
         },
         "gkg_themes":{
-            "pub_date":1,
+            "pub_date":[1],
             "theme":[8, 0],
             "text_offset":[8, 1]
         },
         "gkg_locations":{
-            "pub_date":1,
+            "pub_date":[1],
             "location_type":[10, 0],
             "location_name":[10, 1],
             "location_country":[10, 2],
@@ -40,17 +40,17 @@
             "location_feature_id":[10, 6]
         },
         "gkg_people":{
-            "pub_date":1,
+            "pub_date":[1],
             "person_name":[12, 0],
             "text_offset":[12, 1]
         },
         "gkg_orgs":{
-            "pub_date":1,
+            "pub_date":[1],
             "org_name":[14, 0],
             "text_offset":[14, 1]
         },
         "gkg_liwc":{
-            "pub_date":1,
+            "pub_date":[1],
             "dimension":[17, 
                 [
                     "c5.1",
@@ -117,10 +117,10 @@
                     "c5.62"
                 ]
         ],
-            "word_count":17
+            "word_count":[17]
         },
         "gkg_images":{
-            "pub_date":1,
-            "image_url":19
+            "pub_date":[1],
+            "image_url":[19]
         }
     }

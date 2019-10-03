@@ -1,6 +1,9 @@
 import datetime
 import requests
 import re
+import json
+import zipfile
+import io
 
 ## ----------------------------------------------------------
 ## Objectives:
@@ -33,22 +36,41 @@ def generate_csv_list(dates):
                     date_string = date.strftime("%Y%m%d")
                     file_regex = r"\.translation\.gkg\.csv\.zip$"
                     if re.search(date_string, url) and re.search(file_regex, url):
-                        csv_results[date] = True
                         csv_url_list.append(url)
+
+                # JUST FOR TESTING... REMOVE ME
+                # SO WE DON'T HAVE TO WAIT FOR THE ENTIRE DOC TO PARSE
+                        break
+                    break
         else:
             # could not connect to server for whatever reason...
             print("Could not connect. Server returned a {}".format(response.status_code))
     return csv_url_list #, csv_results 
 
 def parse_data(csv_url):
+    with open("field_map.json", 'r') as file:
+        field_map = json.loads(file.read())
     r = requests.get(csv_url)
     if r.status_code == 200:
         with io.BytesIO() as f:
             f.write(r.content)
             extracted = extract_zip(f)
-            for data in extracted.values():
-                for line in data.split(b'\n'):
-                    fields = line.split(b'\t')
+            for values in extracted.values():
+                for line in values.split(b'\n'):
+                    line = line.split(b'\t')
+                    # for table, fields in field_map.items():
+                    #     for column, indexes in fields.items():
+                    #         import pdb; pdb.set_trace()
+                    
+
+                    data = {
+                        table:{
+                            column:[ line[indexes[0]].decode("utf-8", "replace") ] for column, indexes in fields.items()
+                            if len(indexes) == 1 # just grab top level data for now...
+                            } for table, fields in field_map.items()
+                    }
+                    import pdb; pdb.set_trace()
+            
 
 
     else:
@@ -67,3 +89,5 @@ if __name__ == "__main__":
     d2 = datetime.date(2018, 2, 1)
     date_list = [d for d in generate_date_list(d1, d2)]
     csv_list = generate_csv_list(date_list)
+
+    parse_data(csv_list[0]) # just one for testing...
