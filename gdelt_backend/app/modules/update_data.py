@@ -67,7 +67,7 @@ def parse_data(csv_url):
                         table:{
                             column:[ line[indexes[0]].decode("utf-8", "replace") ] for column, indexes in fields.items()
                             if len(indexes) == 1 # just grab top level data for now...
-                            } for table, fields in field_map.items()
+                            } for table, fields in field_map['primary'].items()
                     }
                     import pdb; pdb.set_trace()
             

@@ -1,4 +1,6 @@
-{
+
+{   
+    "primary": {
         "gkg_sources":{
             "gkg_id": [0],
             "pub_date": [1],
@@ -48,7 +50,9 @@
             "pub_date":[1],
             "org_name":[14, 0],
             "text_offset":[14, 1]
-        },
+        }
+    },
+    "secondary": {
         "gkg_liwc":{
             "pub_date":[1],
             "dimension":[17, 
@@ -124,3 +128,4 @@
             "image_url":[19]
         }
     }
+}
