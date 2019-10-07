@@ -49,6 +49,7 @@ def generate_csv_list(dates):
 
 def parse_data(csv_url):
     with open("field_map.json", 'r') as file:
+        # See field_map.json for field:index map
         field_map = json.loads(file.read())
     r = requests.get(csv_url)
     if r.status_code == 200:
@@ -58,17 +59,43 @@ def parse_data(csv_url):
             for values in extracted.values():
                 for line in values.split(b'\n'):
                     line = line.split(b'\t')
+
+                    data = {}
+
+                    for field, indexes in field_map["one-to-one"]["fields"]["gkg_sources"].items():
+                        if len(indexes)  == 1:
+                            data['gkg_sources'][field] = line[ indexes[0] ]
+                        else:
+                            data['gkg_sources'][field] = line[ indexes[1] ]
+
+                    for field, indexes in field_map['one-to-many']['fields']['type_1']['fields']['gkg_counts']:
+                        # TODO: parse lines by sub-delimiter here....
+
+                            data['gkg_counts'][field] = 
+
+
                     # for table, fields in field_map.items():
                     #     for column, indexes in fields.items():
                     #         import pdb; pdb.set_trace()
                     
 
-                    data = {
-                        table:{
-                            column:[ line[indexes[0]].decode("utf-8", "replace") ] for column, indexes in fields.items()
-                            if len(indexes) == 1 # just grab top level data for now...
-                            } for table, fields in field_map['primary'].items()
-                    }
+
+                    # gkg_sources = {
+                    #     column:[ i for i in index] for column, index in field_map['primary']['gkg_sources'].items()
+                    # }
+
+                    # data = {
+                    #     table:{
+                    #         column:[ line[indexes[0]].decode("utf-8", "replace") ] for column, indexes in fields.items()
+                    #         # if len(indexes) == 1 # just grab top level data for now...
+                    #         } for table, fields in field_map['primary'].items()
+                    # }
+
+                    # data.update({
+                    #     table:{
+                    #         column:[ line[indexes[0]][indexes[1]] ] for column, indexes in fields.items()
+                    #     } for table,fields in field_map['primary'].items()
+                    # })
                     import pdb; pdb.set_trace()
             
 

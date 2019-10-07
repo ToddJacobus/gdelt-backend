@@ -1,60 +1,84 @@
 
 {   
-    "primary": {
-        "gkg_sources":{
-            "gkg_id": [0],
-            "pub_date": [1],
-            "source_id": [2],
-            "source_name": [3],
-            "doc_uri": [4],
-            "positive_score":[15, 1],
-            "negative_score":[15, 2],
-            "polarity":[15, 3],
-            "activity_ref_density":[15, 4],
-            "pronoun_ref_density":[15, 5],
-            "word_count":[15, 6]
-        },
-        "gkg_counts":{
-            "pub_date":[1],
-            "count_type":[6, 0],
-            "count_n":[6, 1],
-            "object_type":[6, 2],
-            "location_type":[6, 3],
-            "location_name":[6, 4],
-            "location_country":[6, 5],
-            "location_adm1":[6, 6],
-            "location_lat":[6, 7],
-            "location_lon":[6, 8]
-        },
-        "gkg_themes":{
-            "pub_date":[1],
-            "theme":[8, 0],
-            "text_offset":[8, 1]
-        },
-        "gkg_locations":{
-            "pub_date":[1],
-            "location_type":[10, 0],
-            "location_name":[10, 1],
-            "location_country":[10, 2],
-            "location_adm1":[10, 3],
-            "location_lat":[10, 4],
-            "location_lon":[10, 5],
-            "location_feature_id":[10, 6]
-        },
-        "gkg_people":{
-            "pub_date":[1],
-            "person_name":[12, 0],
-            "text_offset":[12, 1]
-        },
-        "gkg_orgs":{
-            "pub_date":[1],
-            "org_name":[14, 0],
-            "text_offset":[14, 1]
+    "one-to-one": {
+        "block_delimiter":"",
+        "fields":{
+            "gkg_sources":{
+                "gkg_id": [0],
+                "pub_date": [1],
+                "source_id": [2],
+                "source_name": [3],
+                "doc_uri": [4],
+                "positive_score":[15, 1],
+                "negative_score":[15, 2],
+                "polarity":[15, 3],
+                "activity_ref_density":[15, 4],
+                "pronoun_ref_density":[15, 5],
+                "word_count":[15, 6]
+            }
         }
     },
-    "secondary": {
+    "one-to-many":{
+        "block_delimiter":";",
+        "fields":{
+            "type_1":{
+                "field_delimiter":"#",
+                "fields":{
+                    "gkg_counts":{
+                        "count_type":[6, 0],
+                        "count_n":[6, 1],
+                        "object_type":[6, 2],
+                        "location_type":[6, 3],
+                        "location_name":[6, 4],
+                        "location_country":[6, 5],
+                        "location_adm1":[6, 6],
+                        "location_lat":[6, 7],
+                        "location_lon":[6, 8]
+                    },
+                    "gkg_locations":{
+                        "location_type":[10, 0],
+                        "location_name":[10, 1],
+                        "location_country":[10, 2],
+                        "location_adm1":[10, 3],
+                        "location_lat":[10, 4],
+                        "location_lon":[10, 5],
+                        "location_feature_id":[10, 6]
+                    }
+                }
+            },
+            "type_2": {
+                "field_delimiter":",",
+                "fields":{
+                    "gkg_themes":{
+                        "theme":[8, 0],
+                        "text_offset":[8, 1]
+                    },
+                    "gkg_people":{
+                        "person_name":[12, 0],
+                        "text_offset":[12, 1]
+                    },
+                    "gkg_orgs":{
+                        "org_name":[14, 0],
+                        "text_offset":[14, 1]
+                    }
+                }
+               
+            },
+            "type_3": {
+                "field_delimiter":"",
+                "fields":{
+                   "gkg_images":{
+                    "image_url":[19]
+                    } 
+                }
+                
+            }
+            
+        }
+    },
+        
+    "GCAM": {
         "gkg_liwc":{
-            "pub_date":[1],
             "dimension":[17, 
                 [
                     "c5.1",
@@ -122,10 +146,7 @@
                 ]
         ],
             "word_count":[17]
-        },
-        "gkg_images":{
-            "pub_date":[1],
-            "image_url":[19]
         }
+        
     }
 }
