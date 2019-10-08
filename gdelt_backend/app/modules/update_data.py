@@ -58,44 +58,42 @@ def parse_data(csv_url):
             extracted = extract_zip(f)
             for values in extracted.values():
                 for line in values.split(b'\n'):
-                    line = line.split(b'\t')
+                    line = str(line.split(b'\t'))
 
                     data = {}
+
+                    ## -- Parse one-to-one fields ---------
 
                     for field, indexes in field_map["one-to-one"]["fields"]["gkg_sources"].items():
                         if len(indexes)  == 1:
                             data['gkg_sources'][field] = line[ indexes[0] ]
                         else:
-                            data['gkg_sources'][field] = line[ indexes[1] ]
+                            data['gkg_sources'][field] = line[ indexes[0] ][indexes[1]]
+
+
+                    ## -- Parse one-to-many fields --------
+                    ## NOTE: I'm sure this could be optimized somehow to reduce the number of loops
 
                     for field, indexes in field_map['one-to-many']['fields']['type_1']['fields']['gkg_counts']:
-                        # TODO: parse lines by sub-delimiter here....
+                        data['gkg_counts'][field] = [item.split("#")[indexes[1]] for item in line[indexes[0]].split(';')]
 
-                            data['gkg_counts'][field] = 
+                    for field, indexes in field_map['one-to-many']['fields']['type_1']['fields']['gkg_locations']:
+                        data['gkg_locations'][field] = [item.split("#")[indexes[1]] for item in line[indexes[0]].split(';')]
 
+                    for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_themes']:
+                        data['gkg_themes'][field] = [item.split(",")[indexes[1]] for item in line[indexes[0]].split(';')]
 
-                    # for table, fields in field_map.items():
-                    #     for column, indexes in fields.items():
-                    #         import pdb; pdb.set_trace()
-                    
+                    for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_people']:
+                        data['gkg_people'][field] = [item.split(",")[indexes[1]] for item in line[indexes[0]].split(';')]
 
+                    for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_orgs']:
+                        data['gkg_orgs'][field] = [item.split(",")[indexes[1]] for item in line[indexes[0]].split(';')]
 
-                    # gkg_sources = {
-                    #     column:[ i for i in index] for column, index in field_map['primary']['gkg_sources'].items()
-                    # }
+                    for field, indexes in field_map['one-to-many']['fields']['type_3']['fields']['gkg_images']:
+                        data['gkg_orgs'][field] = [i for i in line[indexes[0]].split(';')]
 
-                    # data = {
-                    #     table:{
-                    #         column:[ line[indexes[0]].decode("utf-8", "replace") ] for column, indexes in fields.items()
-                    #         # if len(indexes) == 1 # just grab top level data for now...
-                    #         } for table, fields in field_map['primary'].items()
-                    # }
+                    # TODO: Just need to do GCAM and I think we're done here...
 
-                    # data.update({
-                    #     table:{
-                    #         column:[ line[indexes[0]][indexes[1]] ] for column, indexes in fields.items()
-                    #     } for table,fields in field_map['primary'].items()
-                    # })
                     import pdb; pdb.set_trace()
             
 
