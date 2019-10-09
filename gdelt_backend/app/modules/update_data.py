@@ -13,6 +13,23 @@ import io
 ##  - parse through endpoints and grab url
 ## ----------------------------------------------------------
 
+def debug(func):
+    import traceback
+    def wrapper(*args, **kwargs):
+        start_time = datetime.datetime.now()
+        try:
+            result = func(*args, **kwargs)
+        except Exception as e:
+            # print(e)
+            traceback.print_exc()
+            print(func.__name__ + " time delta: {}".format(datetime.datetime.now() - start_time))
+            import pdb; pdb.set_trace()
+        finally:
+            print(func.__name__ + " total runtime: {}".format(datetime.datetime.now() - start_time))
+        return result
+    return wrapper
+
+
 def extract_zip(input_zip):
     input_zip = zipfile.ZipFile(input_zip)
     return {i: input_zip.read(i) for i in input_zip.namelist()}
@@ -23,7 +40,6 @@ def generate_date_list(start, end):
 
 def generate_csv_list(dates):
     # make empty dictionary of dates to track regex results
-    # csv_results = {str(d):False for d in dates} # not sure if I need this?
     csv_url_list = []
     base_url = r"http://data.gdeltproject.org/gdeltv2/masterfilelist-translation.txt"
     chunk_size = 8096
@@ -38,14 +54,18 @@ def generate_csv_list(dates):
                     if re.search(date_string, url) and re.search(file_regex, url):
                         csv_url_list.append(url)
 
-                # JUST FOR TESTING... REMOVE ME
-                # SO WE DON'T HAVE TO WAIT FOR THE ENTIRE DOC TO PARSE
+                # ----------------
+                # JUST FOR TESTING... 
+                # REMOVE THIS BLOCK LATER
+                # SO WE DON'T HAVE TO 
+                # WAIT FOR THE ENTIRE DOC TO PARSE
                         break
                     break
+                # ----------------
         else:
             # could not connect to server for whatever reason...
             print("Could not connect. Server returned a {}".format(response.status_code))
-    return csv_url_list #, csv_results 
+    return csv_url_list
 
 def parse_data(csv_url):
     with open("field_map.json", 'r') as file:
@@ -58,41 +78,52 @@ def parse_data(csv_url):
             extracted = extract_zip(f)
             for values in extracted.values():
                 for line in values.split(b'\n'):
-                    line = str(line.split(b'\t'))
+                    line = line.split(b'\t')
 
                     data = {}
 
                     ## -- Parse one-to-one fields ---------
-
+                    data['gkg_sources'] = {}
                     for field, indexes in field_map["one-to-one"]["fields"]["gkg_sources"].items():
+                        
                         if len(indexes)  == 1:
                             data['gkg_sources'][field] = line[ indexes[0] ]
                         else:
-                            data['gkg_sources'][field] = line[ indexes[0] ][indexes[1]]
+                            data['gkg_sources'][field] = line[ indexes[0] ].split(b',')[indexes[1]]
 
 
                     ## -- Parse one-to-many fields --------
                     ## NOTE: I'm sure this could be optimized somehow to reduce the number of loops
+                    data['gkg_counts'] = {}
+                    # TODO: add conditional to check for empty fields.
+                    for field, indexes in field_map['one-to-many']['fields']['type_1']['fields']['gkg_counts'].items():
+                        data['gkg_counts'][field] = [item.split(b"#")[indexes[1]] for item in line[indexes[0]].split(b';') if line[indexes[0]].split(b';')[0] ]
 
-                    for field, indexes in field_map['one-to-many']['fields']['type_1']['fields']['gkg_counts']:
-                        data['gkg_counts'][field] = [item.split("#")[indexes[1]] for item in line[indexes[0]].split(';')]
+                    data['gkg_locations'] = {}
+                    for field, indexes in field_map['one-to-many']['fields']['type_1']['fields']['gkg_locations'].items():
+                        data['gkg_locations'][field] = [item.split(b"#")[indexes[1]] for item in line[indexes[0]].split(b';') if line[indexes[0]].split(b';')[0] ]
 
-                    for field, indexes in field_map['one-to-many']['fields']['type_1']['fields']['gkg_locations']:
-                        data['gkg_locations'][field] = [item.split("#")[indexes[1]] for item in line[indexes[0]].split(';')]
+                    data['gkg_themes'] = {}
+                    for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_themes'].items():
+                        import pdb; pdb.set_trace()
+                        # DEBUG: this line does not parse correctly... list index out of range.
+                        data['gkg_themes'][field] = [item.split(b",")[indexes[1]] for item in line[indexes[0]].split(b';') if line[indexes[0]].split(b';')[0] ]
 
-                    for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_themes']:
-                        data['gkg_themes'][field] = [item.split(",")[indexes[1]] for item in line[indexes[0]].split(';')]
+                    data['gkg_people'] ={}
+                    for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_people'].items():
+                        data['gkg_people'][field] = [item.split(b",")[indexes[1]] for item in line[indexes[0]].split(b';') if line[indexes[0]].split(b';')[0] ]
 
-                    for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_people']:
-                        data['gkg_people'][field] = [item.split(",")[indexes[1]] for item in line[indexes[0]].split(';')]
+                    data['gkg_orgs'] = {}
+                    for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_orgs'].items():
+                        data['gkg_orgs'][field] = [item.split(b",")[indexes[1]] for item in line[indexes[0]].split(b';') if line[indexes[0]].split(b';')[0] ]
 
-                    for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_orgs']:
-                        data['gkg_orgs'][field] = [item.split(",")[indexes[1]] for item in line[indexes[0]].split(';')]
+                    data['gkg_images'] = {}
+                    for field, indexes in field_map['one-to-many']['fields']['type_3']['fields']['gkg_images'].items():
+                        data['gkg_images'][field] = [i for i in line[indexes[0]].split(b';') if line[indexes[0]].split(b';')[0] ]
 
-                    for field, indexes in field_map['one-to-many']['fields']['type_3']['fields']['gkg_images']:
-                        data['gkg_orgs'][field] = [i for i in line[indexes[0]].split(';')]
-
-                    # TODO: Just need to do GCAM and I think we're done here...
+                    data['GCAM'] = {}
+                    for dictionary, dimension in field_map['GCAM'].items():
+                        data['GCAM'][dictionary] = [d for d in dimension[1] if d in line[dimension[0]].split(b',')]
 
                     import pdb; pdb.set_trace()
             
