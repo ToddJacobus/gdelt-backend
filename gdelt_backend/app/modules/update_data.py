@@ -105,17 +105,15 @@ def parse_data(csv_url):
 
                     data['gkg_themes'] = {}
                     for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_themes'].items():
-                        import pdb; pdb.set_trace()
-                        # DEBUG: this line does not parse correctly... list index out of range.
-                        data['gkg_themes'][field] = [item.split(b",")[indexes[1]] for item in line[indexes[0]].split(b';') if line[indexes[0]].split(b';')[0] ]
+                        data['gkg_themes'][field] = [item.split(b',')[ indexes[1] ] for item in line[ indexes[0] ].split(b';') if item.split(b',')[0] ]
 
                     data['gkg_people'] ={}
                     for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_people'].items():
-                        data['gkg_people'][field] = [item.split(b",")[indexes[1]] for item in line[indexes[0]].split(b';') if line[indexes[0]].split(b';')[0] ]
+                        data['gkg_people'][field] = [item.split(b",")[indexes[1]] for item in line[indexes[0]].split(b';') if item.split(b',')[0] ]
 
                     data['gkg_orgs'] = {}
                     for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_orgs'].items():
-                        data['gkg_orgs'][field] = [item.split(b",")[indexes[1]] for item in line[indexes[0]].split(b';') if line[indexes[0]].split(b';')[0] ]
+                        data['gkg_orgs'][field] = [item.split(b",")[indexes[1]] for item in line[indexes[0]].split(b';') if item.split(b',')[0] ]
 
                     data['gkg_images'] = {}
                     for field, indexes in field_map['one-to-many']['fields']['type_3']['fields']['gkg_images'].items():
@@ -123,9 +121,11 @@ def parse_data(csv_url):
 
                     data['GCAM'] = {}
                     for dictionary, dimension in field_map['GCAM'].items():
-                        data['GCAM'][dictionary] = [d for d in dimension[1] if d in line[dimension[0]].split(b',')]
+                        data['GCAM'][dictionary] = [d for d in dimension['dimension'][1] if d in line[dimension['dimension'][0]].split(b',')]
 
                     import pdb; pdb.set_trace()
+                    # DEBUG: There's still some funny business going on (e.g., lon not parsed when assotiated lat is parsed),
+                    #        but I think the main boilerplate is done here.
             
 
 
