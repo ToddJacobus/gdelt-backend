@@ -40,9 +40,9 @@
                         "location_name":[10, 1],
                         "location_country":[10, 2],
                         "location_adm1":[10, 3],
-                        "location_lat":[10, 4],
-                        "location_lon":[10, 5],
-                        "location_feature_id":[10, 6]
+                        "location_lat":[10, 5],
+                        "location_lon":[10, 6],
+                        "location_feature_id":[10, 8]
                     }
                 }
             },
