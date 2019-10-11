@@ -135,6 +135,8 @@ def parse_data(csv_url):
                     for dictionary, dimension in field_map['GCAM'].items():
                         data['GCAM'][dictionary] = [d for d in dimension['dimension'][1] if d in line[dimension['dimension'][0]].split(b',')]
 
+        # NOTE: can/should we make this a generator, to return each line iteratively?
+        #       How do we want to push data to the database?
         return data
     else:
         print("Could not reach server.  Status code: {}".format(r.status_code))
