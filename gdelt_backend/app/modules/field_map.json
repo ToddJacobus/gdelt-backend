@@ -6,7 +6,7 @@
             "gkg_sources":{
                 "gkg_id": [0],
                 "pub_date": [1],
-                "source_id": [2],
+                "pub_id": [2],
                 "source_name": [3],
                 "doc_uri": [4],
                 "positive_score":[15, 1],
