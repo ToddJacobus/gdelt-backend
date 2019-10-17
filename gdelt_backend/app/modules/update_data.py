@@ -79,63 +79,71 @@ def generate_csv_list(dates):
     return csv_url_list
 
 def parse_line(line, field_map):
-    line = line.split(b'\t')
+    line = line.strip().split(b'\t')
 
     data = {}
+    try:
+        ## -- Parse one-to-one fields ---------
+        data['gkg_sources'] = {}
+        for field, indexes in field_map["one-to-one"]["fields"]["gkg_sources"].items():
+            if line[ indexes[0] ]:
+                if len(indexes)  == 1:
+                    data['gkg_sources'][field] = line[ indexes[0] ]
+                else:
+                    data['gkg_sources'][field] = line[ indexes[0] ].split(b',')[indexes[1]]
 
-    ## -- Parse one-to-one fields ---------
-    data['gkg_sources'] = {}
-    for field, indexes in field_map["one-to-one"]["fields"]["gkg_sources"].items():
-        if line[ indexes[0] ]:
-            if len(indexes)  == 1:
-                data['gkg_sources'][field] = line[ indexes[0] ]
-            else:
-                data['gkg_sources'][field] = line[ indexes[0] ].split(b',')[indexes[1]]
+        ## -- Parse one-to-many fields --------
+        ## NOTE: I'm sure these functions could be optimized somehow to reduce the number of loops
+        ##       For example:
+        ##          - if the line does not contain data for a given field, we don't need to iterate
+        ##            over every field in the field_map.
+        ##          - Maybe this could be converted from loops to native parsing methods, like "split"
+        ##            or to a more dedicated csv parsing library, if it exists?.
 
-    ## -- Parse one-to-many fields --------
-    ## NOTE: I'm sure these functions could be optimized somehow to reduce the number of loops
-    ##       For example:
-    ##          - if the line does not contain data for a given field, we don't need to iterate
-    ##            over every field in the field_map.
-    ##          - Maybe this could be converted from loops to native parsing methods, like "split"
-    ##            or to a more dedicated csv parsing library, if it exists?.
+        data['gkg_counts'] = {}
+        # TODO: add conditional to check for empty fields.
+        for field, indexes in field_map['one-to-many']['fields']['type_1']['fields']['gkg_counts'].items():
+            if line[ indexes[0] ]:
+            # data['gkg_counts'][field] = [item.split(b"#")[indexes[1]] for item in line[indexes[0]].split(b';') if line[indexes[0]].split(b';')[0] ]
+                data['gkg_counts'][field] = [item.split(b"#")[indexes[1]] for item in line[indexes[0]].split(b';') if item ]
 
-    data['gkg_counts'] = {}
-    # TODO: add conditional to check for empty fields.
-    for field, indexes in field_map['one-to-many']['fields']['type_1']['fields']['gkg_counts'].items():
-        if line[ indexes[0] ]:
-        # data['gkg_counts'][field] = [item.split(b"#")[indexes[1]] for item in line[indexes[0]].split(b';') if line[indexes[0]].split(b';')[0] ]
-            data['gkg_counts'][field] = [item.split(b"#")[indexes[1]] for item in line[indexes[0]].split(b';') if item ]
+        data['gkg_locations'] = {}
+        for field, indexes in field_map['one-to-many']['fields']['type_1']['fields']['gkg_locations'].items():
+            if line[ indexes[0] ]:
+                data['gkg_locations'][field] = [item.split(b"#")[indexes[1]] for item in line[indexes[0]].split(b';') if item ]
 
-    data['gkg_locations'] = {}
-    for field, indexes in field_map['one-to-many']['fields']['type_1']['fields']['gkg_locations'].items():
-        if line[ indexes[0] ]:
-            data['gkg_locations'][field] = [item.split(b"#")[indexes[1]] for item in line[indexes[0]].split(b';') if item ]
+        data['gkg_themes'] = {}
+        for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_themes'].items():
+            if line[ indexes[0] ]:
+                data['gkg_themes'][field] = [item.split(b',')[ indexes[1] ] for item in line[ indexes[0] ].split(b';') if item ]
 
-    data['gkg_themes'] = {}
-    for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_themes'].items():
-        if line[ indexes[0] ]:
-            data['gkg_themes'][field] = [item.split(b',')[ indexes[1] ] for item in line[ indexes[0] ].split(b';') if item ]
+        data['gkg_people'] ={}
+        for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_people'].items():
+            if line[ indexes[0] ]:
+                data['gkg_people'][field] = [item.split(b",")[indexes[1]] for item in line[indexes[0]].split(b';') if item]
 
-    data['gkg_people'] ={}
-    for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_people'].items():
-        if line[ indexes[0] ]:
-            data['gkg_people'][field] = [item.split(b",")[indexes[1]] for item in line[indexes[0]].split(b';') if item]
+        data['gkg_orgs'] = {}
+        for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_orgs'].items():
+            if line[ indexes[0] ]:
+                data['gkg_orgs'][field] = [item.split(b",")[indexes[1]] for item in line[indexes[0]].split(b';') if item]
 
-    data['gkg_orgs'] = {}
-    for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_orgs'].items():
-        if line[ indexes[0] ]:
-            data['gkg_orgs'][field] = [item.split(b",")[indexes[1]] for item in line[indexes[0]].split(b';') if item]
+        data['gkg_images'] = {}
+        for field, indexes in field_map['one-to-many']['fields']['type_3']['fields']['gkg_images'].items():
+            if line[ indexes[0] ]:
+                data['gkg_images'][field] = [item for item in line[indexes[0]].split(b';') if item]
 
-    data['gkg_images'] = {}
-    for field, indexes in field_map['one-to-many']['fields']['type_3']['fields']['gkg_images'].items():
-        if line[ indexes[0] ]:
-            data['gkg_images'][field] = [item for item in line[indexes[0]].split(b';') if item]
-
-    data['GCAM'] = {}
-    for dictionary, dimension in field_map['GCAM'].items():
-        data['GCAM'][dictionary] = [d for d in dimension['dimension'][1] if d in line[dimension['dimension'][0]].split(b',')]
-    return data
+        data['GCAM'] = {}
+        for dictionary, dimension in field_map['GCAM'].items():
+            data['GCAM'][dictionary] = [d for d in dimension['dimension'][1] if d in line[dimension['dimension'][0]].split(b',')]
+        return data
+    except:
+        with open("../../../logs/runtime.log", 'a+') as file:
+            file.write("{timestamp}: Could not parse line: {exc} -- {data}".format(
+                timestamp = datetime.datetime.now(),
+                exc = traceback.format_exc(),
+                data = line
+            ))
+        
 
 @clock
 def parse_data(csv_url):
