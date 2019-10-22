@@ -3,8 +3,7 @@
 from django.contrib.gis.db import models
 import architect
 
-# DEBUG: dis broken..
-@architect.install('partition', 'range', 'date', 'month', 'pub_date')
+@architect.install('partition', type='range', subtype='date', constraint='month', column='pub_date')
 class Sources(models.Model):
     gkg_id = models.CharField(max_length=50, unique=True)
     pub_date = models.DateField()
@@ -20,7 +19,7 @@ class Sources(models.Model):
     word_count = models.FloatField()
     share_image = models.TextField()
 
-
+@architect.install('partition', type='range', subtype='date', constraint='month', column='pub_date')
 class Counts(models.Model):
     source_id = models.IntegerField()
     pub_date = models.DateField()
@@ -36,12 +35,14 @@ class Counts(models.Model):
     location_feature_id = models.CharField(max_length=50)
     geom = models.PointField()
 
+@architect.install('partition', type='range', subtype='date', constraint='month', column='pub_date')
 class Themes(models.Model):
     source_id = models.IntegerField()
     pub_date = models.DateField()
     theme = models.CharField(max_length=50)
     text_offset = models.IntegerField()
 
+@architect.install('partition', type='range', subtype='date', constraint='month', column='pub_date')
 class Locations(models.Model):
     source_id = models.IntegerField()
     pub_date = models.DateField()
@@ -54,24 +55,28 @@ class Locations(models.Model):
     location_feature_id = models.CharField(max_length=50)
     geom = models.PointField()
 
+@architect.install('partition', type='range', subtype='date', constraint='month', column='pub_date')
 class People(models.Model):
     source_id = models.IntegerField()
     pub_date = models.DateField()
     person_name = models.CharField()
     text_offset = models.IntegerField()
 
+@architect.install('partition', type='range', subtype='date', constraint='month', column='pub_date')
 class Orgs(models.Model):
     source_id = models.IntegerField()
     pub_date = models.DateField()
     org_name = models.CharField()
     text_offset = models.IntegerField()
 
+@architect.install('partition', type='range', subtype='date', constraint='month', column='pub_date')
 class Liwc(models.Model):
     source_id = models.IntegerField()
     pub_date = models.DateField()
     dimension = models.CharField(max_length=50)
     word_count = models.IntegerField()
 
+@architect.install('partition', type='range', subtype='date', constraint='month', column='pub_date')
 class Images(models.Model):
     source_id = models.IntegerField()
     pub_date = models.DateField()
