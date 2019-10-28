@@ -12,6 +12,8 @@ celery = "*"
 redis = "*"
 django-widget-tweaks = "*"
 requests = "*"
+architect = "*"
+pylint = "*"
 
 [requires]
 python_version = "3.7"

@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS data.gkg_sources (
 	id bigserial,
 	gkg_id varchar(50) not null,
 	pub_date date not null,
-	source_id int not null,
+	pub_id int not null,
 	source_name varchar(100) not null,
 	doc_uri	text not null,
 	tone numeric,
