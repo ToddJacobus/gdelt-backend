@@ -59,14 +59,14 @@ class Locations(models.Model):
 class People(models.Model):
     source_id = models.IntegerField()
     pub_date = models.DateField()
-    person_name = models.CharField()
+    person_name = models.CharField(max_length=100)
     text_offset = models.IntegerField()
 
 @architect.install('partition', type='range', subtype='date', constraint='month', column='pub_date')
 class Orgs(models.Model):
     source_id = models.IntegerField()
     pub_date = models.DateField()
-    org_name = models.CharField()
+    org_name = models.CharField(max_length=100)
     text_offset = models.IntegerField()
 
 @architect.install('partition', type='range', subtype='date', constraint='month', column='pub_date')
@@ -81,6 +81,8 @@ class Images(models.Model):
     source_id = models.IntegerField()
     pub_date = models.DateField()
     image_url = models.TextField()
+
+
 
 
 
