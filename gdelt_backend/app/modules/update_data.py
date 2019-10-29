@@ -16,22 +16,10 @@ import traceback
 ##  - parse through endpoints and grab url
 ## ----------------------------------------------------------
 
-def debug(func):
-    import traceback
-    def wrapper(*args, **kwargs):
-        start_time = datetime.datetime.now()
-        try:
-            result = func(*args, **kwargs)
-        except Exception as e:
-            # print(e)
-            traceback.print_exc()
-            print(func.__name__ + " time delta: {}".format(datetime.datetime.now() - start_time))
-            import pdb; pdb.set_trace()
-        finally:
-            print(func.__name__ + " total runtime: {}".format(datetime.datetime.now() - start_time))
-        return result
-    return wrapper
-
+## ------------------------------------------------------------
+## Simple decorator for measuring function runtime. This should
+## probably not be implemented in production.
+## ------------------------------------------------------------
 def clock(func):
     def wrapper(*args, **kwargs):
         start_time = datetime.datetime.now()
@@ -47,16 +35,28 @@ def clock(func):
         return result
     return wrapper
 
+## ---------------------------------------------------------------
+## Extract zip file in memory.  Used for decompressing data fields
+## as read from the csv master list.
+## ---------------------------------------------------------------
 @clock
 def extract_zip(input_zip):
     input_zip = zipfile.ZipFile(input_zip)
     return {i: input_zip.read(i) for i in input_zip.namelist()}
 
+## ---------------------------------------------------
+## Return list of days using given start and end dates
+## ---------------------------------------------------
 @clock
 def generate_date_list(start, end):
-    for d in range((end - start).days):
-        yield(start + datetime.timedelta(days=d))
+    return [start + datetime.timedelta(days=d) for d in range((end - start).days)]
 
+## ---------------------------------------------------------
+## URLs representing locations of CSV data files are listed
+## in a CSV master list, which is just a text document hosted
+## by GDELT project servers.  This function parses this file
+## then returns a list of CSV files to parse again for data.
+## ----------------------------------------------------------
 @clock
 def generate_csv_list(dates):
     # make empty dictionary of dates to track regex results
@@ -78,6 +78,11 @@ def generate_csv_list(dates):
             print("Could not connect. Server returned a {}".format(response.status_code))
     return csv_url_list
 
+## -----------------------------------------------------
+## This function parses each individual line of the data
+## CSV file, using a field index map defined at 
+## gdelt_backend/app/modules/field_map.json
+## -----------------------------------------------------
 def parse_line(line, field_map):
     line = line.strip().split(b'\t')
 
@@ -144,7 +149,11 @@ def parse_line(line, field_map):
                 data = line
             ))
         
-
+## --------------------------------------------------
+## Generator for abstracting the data parsing process,
+## issuing the initial request, and calling the 
+## parse_line function and yielding a row of data.
+## ---------------------------------------------------
 @clock
 def parse_data(csv_url):
     with open("field_map.json", 'r') as file:
@@ -174,11 +183,13 @@ if __name__ == "__main__":
     d1 = datetime.date(2018, 1, 1)
     d2 = datetime.date(2018, 1, 2)
     # d2 = datetime.date(2018, 2, 1)
-    date_list = [d for d in generate_date_list(d1, d2)]
-    csv_list = generate_csv_list(date_list)
+    date_list = generate_date_list(d1, d2)     # build list of dates from which to extract data
+    csv_list = generate_csv_list(date_list)    # build list of csv urls that corespond to defined dates
 
+    # this function only exists so I could put the @clock decorator on the process.
     @clock
     def get_data():
+        # iterate through the csv list and return each line of data as a 2d array from the parse_data function
         return [[line for line in parse_data(csv)] for csv in generate_csv_list(date_list)]
 
     data = get_data()

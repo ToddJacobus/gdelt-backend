@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "/Users/toddjacobus/.local/share/virtualenvs/gdelt_backend-3mRuTprG/bin/python",
+    "python.pythonPath": "/anaconda3/envs/py37_gdelt_backend/bin/python",
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true
 }
