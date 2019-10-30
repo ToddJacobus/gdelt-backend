@@ -1,7 +1,8 @@
 from celery import shared_task
 
 # -- local module --
-from modules.update_data import generate_csv_list, parse_data
+from .modules.update_data import generate_csv_list, parse_data
+
 
 @shared_task
 def adding_task(x, y):
