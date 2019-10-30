@@ -154,7 +154,7 @@ def parse_line(line, field_map):
 ## issuing the initial request, and calling the 
 ## parse_line function and yielding a row of data.
 ## ---------------------------------------------------
-@clock
+
 def parse_data(csv_url):
     with open("field_map.json", 'r') as file:
         # See field_map.json for field:index map
@@ -177,7 +177,8 @@ def parse_data(csv_url):
                 status_code = r.status_code,
                 url = csv_url
             ))
-        print("Could not reach server.  Status code: {}".format(r.status_code))
+        print("Could not reach server.  Status code: {}".format(r.status_code)) 
+
 
 if __name__ == "__main__":
     d1 = datetime.date(2018, 1, 1)

@@ -10,7 +10,16 @@ def adding_task(x, y):
 
 @shared_task
 def get_data(datelist):
+    # currently only supporting 24hr chunks.
+    # NOTE: this is only limited by the regex
+    # internal to the parse_data function.
     csv_list = generate_csv_list(datelist)
+    for csv in csv_list:
+        data_batch = []
+        while len(data_batch) < 10000
+            data_batch.append(parse_data(csv))
+            
+
     # call data parsing functions
     # write function/module to upload data using the Django ORM
     
@@ -20,6 +29,11 @@ def get_data(datelist):
 #   A - chunk by date:
 #       - quickly generate date list syncronously
 #       - pass date list into .chunks method to chunk by date.
+#
+#   A.5 - chunk by finer dates
+#       - Pass in sub-24hr dates, rather than a list of days.  Since
+#         each csv represents 15 minutes of data, we can chunk up to
+#         15 minute intervals.
 #
 #   B - chunk by csv url:
 #       - syncronously generate CSV list
