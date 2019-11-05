@@ -13,11 +13,37 @@ def get_data(datelist):
     # currently only supporting 24hr chunks.
     # NOTE: this is only limited by the regex
     # internal to the parse_data function.
+
+    # make list of csv's to parse from GDELT csv master list
+
+    # NOTE:
+    #   - This function needs to parse n lines from a csv file.
+    #   - when n in reached, it needs to pass the chunk of n
+    #     lines along for uploading.
+    #   - A generator should keep track of where it is, but
+    #     we need to store the object somewhere...
+    #   - This might nessesitate writing a class so we can
+    #     easily instantiate an object that internally keeps
+    #     track.
+
     csv_list = generate_csv_list(datelist)
     for csv in csv_list:
+        # chunk data into 10000 items lists for uploading
         data_batch = []
-        while len(data_batch) < 10000
-            data_batch.append(parse_data(csv))
+        batch_size = 10000
+        data_generator = parse_data(csv)
+        while True:
+            try:
+                for i in range(batch_size):
+                    # parse data for each csv in list.
+                    data_batch.append(next(data_generator))
+                # TODO: make dis...
+                upload_data(data_batch)
+                data_batch = []
+            except StopIteration:
+                break
+
+    
             
 
     # call data parsing functions

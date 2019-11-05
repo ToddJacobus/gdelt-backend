@@ -180,18 +180,138 @@ def parse_data(csv_url):
         print("Could not reach server.  Status code: {}".format(r.status_code)) 
 
 
-if __name__ == "__main__":
-    d1 = datetime.date(2018, 1, 1)
-    d2 = datetime.date(2018, 1, 2)
-    # d2 = datetime.date(2018, 2, 1)
-    date_list = generate_date_list(d1, d2)     # build list of dates from which to extract data
-    csv_list = generate_csv_list(date_list)    # build list of csv urls that corespond to defined dates
+## --------------------------------------------------------------
+## Parse Data Class
+## --------------------------------------------------------------
 
-    # this function only exists so I could put the @clock decorator on the process.
-    @clock
-    def get_data():
-        # iterate through the csv list and return each line of data as a 2d array from the parse_data function
-        return [[line for line in parse_data(csv)] for csv in generate_csv_list(date_list)]
+class DataIterator():
+    """
+        A custom iterator that retuns lines of data from a 
+        single CSV data file, hosted at a http url, specific
+        to GDELT.
 
-    data = get_data()
-    import pdb; pdb.set_trace()
+        The purpose of this class is so we can keep track of
+        parsed data lines and create any size chunk from any
+        number of CSV connections open.
+    """
+    def __init__(self, csv_url, field_map="field_map.json"):
+        self.data = None
+        self.csv_url = csv_url
+
+        # Get field map
+        self.field_map = self.load_field_map(field_map)
+
+        # make a line generator to cut down on memory cost
+        # NOTE: is it considered good practice to create a
+        #       generator within a custom iterator class?
+        self.line_generator = self.generate_lines(csv_url)
+        
+
+    def load_field_map(self, field_map):
+        with open(field_map, 'r') as file:
+            return json.loads(file.read())
+
+    def generate_lines(self, csv_url):
+        lines = []
+        r = requests.get(csv_url)
+        if r.status_code == 200:
+            with io.BytesIO() as f:
+                f.write(r.content)
+                extracted = extract_zip(f)
+                for values in extracted.values():
+                    for line in values.strip().split(b'\n'):
+                        lines.append(line)
+        yield line
+
+    def parse_line(self, line, field_map):
+        line = line.strip().split(b'\t')
+        data = {}
+        try:
+            ## -- Parse one-to-one fields ---------
+            data['gkg_sources'] = {}
+            for field, indexes in field_map["one-to-one"]["fields"]["gkg_sources"].items():
+                if line[ indexes[0] ]:
+                    if len(indexes)  == 1:
+                        data['gkg_sources'][field] = line[ indexes[0] ]
+                    else:
+                        data['gkg_sources'][field] = line[ indexes[0] ].split(b',')[indexes[1]]
+
+            ## -- Parse one-to-many fields --------
+            ## NOTE: I'm sure these functions could be optimized somehow to reduce the number of loops
+            ##       For example:
+            ##          - if the line does not contain data for a given field, we don't need to iterate
+            ##            over every field in the field_map.
+            ##          - Maybe this could be converted from loops to native parsing methods, like "split"
+            ##            or to a more dedicated csv parsing library, if it exists?.
+
+            data['gkg_counts'] = {}
+            # TODO: add conditional to check for empty fields.
+            for field, indexes in field_map['one-to-many']['fields']['type_1']['fields']['gkg_counts'].items():
+                if line[ indexes[0] ]:
+                # data['gkg_counts'][field] = [item.split(b"#")[indexes[1]] for item in line[indexes[0]].split(b';') if line[indexes[0]].split(b';')[0] ]
+                    data['gkg_counts'][field] = [item.split(b"#")[indexes[1]] for item in line[indexes[0]].split(b';') if item ]
+
+            data['gkg_locations'] = {}
+            for field, indexes in field_map['one-to-many']['fields']['type_1']['fields']['gkg_locations'].items():
+                if line[ indexes[0] ]:
+                    data['gkg_locations'][field] = [item.split(b"#")[indexes[1]] for item in line[indexes[0]].split(b';') if item ]
+
+            data['gkg_themes'] = {}
+            for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_themes'].items():
+                if line[ indexes[0] ]:
+                    data['gkg_themes'][field] = [item.split(b',')[ indexes[1] ] for item in line[ indexes[0] ].split(b';') if item ]
+
+            data['gkg_people'] ={}
+            for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_people'].items():
+                if line[ indexes[0] ]:
+                    data['gkg_people'][field] = [item.split(b",")[indexes[1]] for item in line[indexes[0]].split(b';') if item]
+
+            data['gkg_orgs'] = {}
+            for field, indexes in field_map['one-to-many']['fields']['type_2']['fields']['gkg_orgs'].items():
+                if line[ indexes[0] ]:
+                    data['gkg_orgs'][field] = [item.split(b",")[indexes[1]] for item in line[indexes[0]].split(b';') if item]
+
+            data['gkg_images'] = {}
+            for field, indexes in field_map['one-to-many']['fields']['type_3']['fields']['gkg_images'].items():
+                if line[ indexes[0] ]:
+                    data['gkg_images'][field] = [item for item in line[indexes[0]].split(b';') if item]
+
+            data['GCAM'] = {}
+            for dictionary, dimension in field_map['GCAM'].items():
+                data['GCAM'][dictionary] = [d for d in dimension['dimension'][1] if d in line[dimension['dimension'][0]].split(b',')]
+            return data
+        except:
+            with open("../../../logs/runtime.log", 'a+') as file:
+                file.write("{timestamp}: Could not parse line: {exc} -- {data}".format(
+                    timestamp = datetime.datetime.now(),
+                    exc = traceback.format_exc(),
+                    data = line
+                ))
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        line = next(self.line_generator)
+        self.data = self.parse_line(line, self.field_map)
+        return self.data
+
+
+
+
+# keeping for reference, for now...
+# if __name__ == "__main__":
+#     d1 = datetime.date(2018, 1, 1)
+#     d2 = datetime.date(2018, 1, 2)
+#     # d2 = datetime.date(2018, 2, 1)
+#     date_list = generate_date_list(d1, d2)     # build list of dates from which to extract data
+#     csv_list = generate_csv_list(date_list)    # build list of csv urls that corespond to defined dates
+
+#     # this function only exists so I could put the @clock decorator on the process.
+#     @clock
+#     def get_data():
+#         # iterate through the csv list and return each line of data as a 2d array from the parse_data function
+#         return [[line for line in parse_data(csv)] for csv in generate_csv_list(date_list)]
+
+#     data = get_data()
+#     import pdb; pdb.set_trace()
